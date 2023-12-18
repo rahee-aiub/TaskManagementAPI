@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "F:\\Projects\\TaskManagement\\TaskManagement\\TaskManagement\\TaskManagement.csproj": {}
+    "D:\\Projects\\TaskManagementAPI\\TaskManagementAPI\\TaskManagement\\TaskManagement.csproj": {}
   },
   "projects": {
-    "F:\\Projects\\TaskManagement\\TaskManagement\\TaskManagement\\TaskManagement.csproj": {
+    "D:\\Projects\\TaskManagementAPI\\TaskManagementAPI\\TaskManagement\\TaskManagement.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "F:\\Projects\\TaskManagement\\TaskManagement\\TaskManagement\\TaskManagement.csproj",
+        "projectUniqueName": "D:\\Projects\\TaskManagementAPI\\TaskManagementAPI\\TaskManagement\\TaskManagement.csproj",
         "projectName": "TaskManagement",
-        "projectPath": "F:\\Projects\\TaskManagement\\TaskManagement\\TaskManagement\\TaskManagement.csproj",
+        "projectPath": "D:\\Projects\\TaskManagementAPI\\TaskManagementAPI\\TaskManagement\\TaskManagement.csproj",
         "packagesPath": "C:\\Users\\RAHEE\\.nuget\\packages\\",
-        "outputPath": "F:\\Projects\\TaskManagement\\TaskManagement\\TaskManagement\\obj\\",
+        "outputPath": "D:\\Projects\\TaskManagementAPI\\TaskManagementAPI\\TaskManagement\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\RAHEE\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -43,6 +43,10 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[7.0.5, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[7.0.14, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
