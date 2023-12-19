@@ -7,8 +7,6 @@ namespace TaskManagement.Services
 {
     public class TaskService : ITaskService
     {
-
-
         private readonly AppDbContext _context;
 
         public TaskService(AppDbContext context)

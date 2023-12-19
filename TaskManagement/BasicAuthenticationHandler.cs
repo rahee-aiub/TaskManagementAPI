@@ -54,8 +54,7 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
 
     private bool IsValidUser(string username, string password)
     {
-        // TODO: Add your custom logic to validate the username and password
-        // For example, you can check against a database or any other authentication mechanism
+ 
         return username == "admin" && password == "admin";
     }
 }

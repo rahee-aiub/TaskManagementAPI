@@ -5,8 +5,6 @@ namespace TaskManagement.Services
 {
     public class UserService : IUserService
     {
-        //private readonly List<UserModel> _users = new List<UserModel>();
-        //private int _userIdCounter = 1;
 
         private readonly AppDbContext _context;
 
