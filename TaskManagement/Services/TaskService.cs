@@ -1,33 +1,42 @@
-﻿using TaskManagement.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using TaskManagement.Interfaces;
 using TaskManagement.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskManagement.Services
 {
     public class TaskService : ITaskService
     {
-        private readonly List<TaskModel> _tasks = new List<TaskModel>();
-        private int _taskIdCounter = 1;
 
+
+        private readonly AppDbContext _context;
+
+        public TaskService(AppDbContext context)
+        {
+            _context = context;
+        }
         public async Task<IEnumerable<TaskModel>> GetTasks()
         {
-            return await Task.FromResult(_tasks);
+    
+            return await _context.Tasks.ToListAsync();
         }
 
         public async Task<TaskModel> GetTaskById(int taskId)
         {
-            return await Task.FromResult(_tasks.FirstOrDefault(t => t.Id == taskId));
+            return await _context.Tasks.FirstOrDefaultAsync(t => t.Id == taskId);
         }
 
         public async Task<TaskModel> CreateTask(TaskModel task)
         {
-            task.Id = _taskIdCounter++;
-            _tasks.Add(task);
+            task.Id = 0;
+            _context.Tasks.Add(task);
+            _context.SaveChanges();
             return await Task.FromResult(task);
         }
 
         public async Task<TaskModel> UpdateTask(TaskModel task)
         {
-            var existingTask = _tasks.FirstOrDefault(t => t.Id == task.Id);
+            var existingTask = _context.Tasks.FirstOrDefault(t => t.Id == task.Id);
             if (existingTask != null)
             {
                 existingTask.Title = task.Title;
@@ -35,15 +44,19 @@ namespace TaskManagement.Services
                 existingTask.DueDate = task.DueDate;
                 existingTask.Status = task.Status;
             }
+
+            _context.SaveChanges();
+
             return await Task.FromResult(existingTask);
         }
 
         public async Task<bool> DeleteTask(int taskId)
         {
-            var taskToRemove = _tasks.FirstOrDefault(t => t.Id == taskId);
+            var taskToRemove = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
             if (taskToRemove != null)
             {
-                _tasks.Remove(taskToRemove);
+                _context.Tasks.Remove(taskToRemove);
+                _context.SaveChanges();
                 return await Task.FromResult(true);
             }
             return await Task.FromResult(false);

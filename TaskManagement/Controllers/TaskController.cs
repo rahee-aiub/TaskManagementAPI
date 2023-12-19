@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement;
+using TaskManagement.Interfaces;
 using TaskManagement.Models;
 
 namespace TaskManagement.Controllers
@@ -16,33 +18,31 @@ namespace TaskManagement.Controllers
     //[Authorize(Policy = "BasicAuthentication")]
     public class TaskController : ControllerBase
     {
-        private readonly AppDbContext _context;
 
-        public TaskController(AppDbContext context)
+        private readonly ITaskService _taskService;
+        public TaskController(ITaskService taskService)
         {
-            _context = context;
+            _taskService = taskService ?? throw new ArgumentNullException(nameof(taskService));
         }
 
-        // GET: api/Task
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskModel>>> GetTasks()
         {
-          if (_context.Tasks == null)
-          {
-              return NotFound();
-          }
-            return await _context.Tasks.ToListAsync();
+            if (_taskService.GetTasks == null)
+            {
+                return NotFound();
+            }
+            var data = await _taskService.GetTasks();
+            return Ok(data);
         }
 
-        // GET: api/Task/5
+
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskModel>> GetTaskModel(int id)
         {
-          if (_context.Tasks == null)
-          {
-              return NotFound();
-          }
-            var taskModel = await _context.Tasks.FindAsync(id);
+
+            var taskModel = await _taskService.GetTaskById(id);
 
             if (taskModel == null)
             {
@@ -52,75 +52,41 @@ namespace TaskManagement.Controllers
             return taskModel;
         }
 
-        // PUT: api/Task/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTaskModel(int id, TaskModel taskModel)
+        public async Task<ActionResult> PutTaskModel(int id, TaskModel taskModel)
         {
             if (id != taskModel.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(taskModel).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TaskModelExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            var data = _taskService.UpdateTask(taskModel);
+            return Ok(data);
         }
 
-        // POST: api/Task
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
         [HttpPost]
         public async Task<ActionResult<TaskModel>> PostTaskModel(TaskModel taskModel)
         {
-          if (_context.Tasks == null)
-          {
-              return Problem("Entity set 'AppDbContext.Tasks'  is null.");
-          }
-            _context.Tasks.Add(taskModel);
-            await _context.SaveChangesAsync();
-
+            _taskService.CreateTask(taskModel);
             return CreatedAtAction("GetTaskModel", new { id = taskModel.Id }, taskModel);
         }
 
-        // DELETE: api/Task/5
+ 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTaskModel(int id)
         {
-            if (_context.Tasks == null)
-            {
-                return NotFound();
-            }
-            var taskModel = await _context.Tasks.FindAsync(id);
+            var taskModel = await _taskService.GetTaskById(id);
             if (taskModel == null)
             {
                 return NotFound();
             }
 
-            _context.Tasks.Remove(taskModel);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+ 
+            return Ok(_taskService.DeleteTask(id));
         }
 
-        private bool TaskModelExists(int id)
-        {
-            return (_context.Tasks?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
+
     }
 }
