@@ -56,6 +56,6 @@ public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSc
     {
         // TODO: Add your custom logic to validate the username and password
         // For example, you can check against a database or any other authentication mechanism
-        return username == "your_username" && password == "your_password";
+        return username == "admin" && password == "admin";
     }
 }

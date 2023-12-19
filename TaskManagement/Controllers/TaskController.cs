@@ -13,7 +13,7 @@ namespace TaskManagement.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = "BasicAuthentication")]
+    //[Authorize(Policy = "BasicAuthentication")]
     public class TaskController : ControllerBase
     {
         private readonly AppDbContext _context;
