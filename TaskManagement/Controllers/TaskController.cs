@@ -1,78 +1,124 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TaskManagement.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskManagement;
 using TaskManagement.Models;
 
 namespace TaskManagement.Controllers
 {
-    [Route("api/tasks")]
+    [Route("api/[controller]")]
     [ApiController]
     public class TaskController : ControllerBase
     {
-        private readonly ITaskService _taskService;
+        private readonly AppDbContext _context;
 
-        public TaskController(ITaskService taskService)
+        public TaskController(AppDbContext context)
         {
-            _taskService = taskService;
+            _context = context;
         }
 
+        // GET: api/Task
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskModel>>> GetTasks()
         {
-            var tasks = await _taskService.GetTasks();
-            return Ok(tasks);
+          if (_context.Tasks == null)
+          {
+              return NotFound();
+          }
+            return await _context.Tasks.ToListAsync();
         }
 
-        [HttpGet("{taskId}")]
-        public async Task<ActionResult<TaskModel>> GetTaskById(int taskId)
+        // GET: api/Task/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TaskModel>> GetTaskModel(int id)
         {
-            var task = await _taskService.GetTaskById(taskId);
-            if (task == null)
+          if (_context.Tasks == null)
+          {
+              return NotFound();
+          }
+            var taskModel = await _context.Tasks.FindAsync(id);
+
+            if (taskModel == null)
             {
                 return NotFound();
             }
 
-            return Ok(task);
+            return taskModel;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<TaskModel>> CreateTask([FromBody] TaskModel task)
+        // PUT: api/Task/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutTaskModel(int id, TaskModel taskModel)
         {
-            if (!ModelState.IsValid)
+            if (id != taskModel.Id)
             {
-                return BadRequest(ModelState);
+                return BadRequest();
             }
 
-            var createdTask = await _taskService.CreateTask(task);
-            return CreatedAtAction(nameof(GetTaskById), new { taskId = createdTask.Id }, createdTask);
-        }
+            _context.Entry(taskModel).State = EntityState.Modified;
 
-        [HttpPut("{taskId}")]
-        public async Task<ActionResult<TaskModel>> UpdateTask(int taskId, [FromBody] TaskModel task)
-        {
-            if (taskId != task.Id)
+            try
             {
-                return BadRequest("Mismatched taskId in the request body.");
+                await _context.SaveChangesAsync();
             }
-
-            var updatedTask = await _taskService.UpdateTask(task);
-            if (updatedTask == null)
+            catch (DbUpdateConcurrencyException)
             {
-                return NotFound();
-            }
-
-            return Ok(updatedTask);
-        }
-
-        [HttpDelete("{Id}")]
-        public async Task<ActionResult> DeleteTask(int Id)
-        {
-            var result = await _taskService.DeleteTask(Id);
-            if (!result)
-            {
-                return NotFound();
+                if (!TaskModelExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
 
             return NoContent();
+        }
+
+        // POST: api/Task
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<TaskModel>> PostTaskModel(TaskModel taskModel)
+        {
+          if (_context.Tasks == null)
+          {
+              return Problem("Entity set 'AppDbContext.Tasks'  is null.");
+          }
+            _context.Tasks.Add(taskModel);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetTaskModel", new { id = taskModel.Id }, taskModel);
+        }
+
+        // DELETE: api/Task/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTaskModel(int id)
+        {
+            if (_context.Tasks == null)
+            {
+                return NotFound();
+            }
+            var taskModel = await _context.Tasks.FindAsync(id);
+            if (taskModel == null)
+            {
+                return NotFound();
+            }
+
+            _context.Tasks.Remove(taskModel);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool TaskModelExists(int id)
+        {
+            return (_context.Tasks?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

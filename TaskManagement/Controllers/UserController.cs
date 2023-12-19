@@ -1,63 +1,124 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TaskManagement.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TaskManagement;
 using TaskManagement.Models;
 
 namespace TaskManagement.Controllers
 {
-    [Route("api/users")]
+    [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly AppDbContext _context;
 
-        public UserController(IUserService userService)
+        public UserController(AppDbContext context)
         {
-            _userService = userService;
+            _context = context;
         }
 
-        [HttpPost("register")]
-        public async Task<ActionResult<UserModel>> RegisterUser([FromBody] UserModel user)
+        // GET: api/User
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var registeredUser = await _userService.RegisterUser(user);
-            return CreatedAtAction(nameof(GetUserById), new { userId = registeredUser.Id }, registeredUser);
+          if (_context.Users == null)
+          {
+              return NotFound();
+          }
+            return await _context.Users.ToListAsync();
         }
 
-        [HttpPost("authenticate")]
-        public async Task<ActionResult<UserModel>> AuthenticateUser([FromBody] UserModel userAuth)
+        // GET: api/User/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<UserModel>> GetUserModel(int id)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+          if (_context.Users == null)
+          {
+              return NotFound();
+          }
+            var userModel = await _context.Users.FindAsync(id);
 
-            var authenticatedUser = await _userService.AuthenticateUser(userAuth.Username, userAuth.Password);
-
-            if (authenticatedUser == null)
-            {
-                return Unauthorized();
-            }
-
-            return Ok(authenticatedUser);
-        }
-
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<UserModel>> GetUserById(int userId)
-        {
-            // Add implementation to retrieve a user by ID if needed.
-            // This action is included for reference purposes.
-            // Adjust it based on your actual requirements.
-            var user = new UserModel(); // Replace with actual logic to get user by ID
-            if (user == null)
+            if (userModel == null)
             {
                 return NotFound();
             }
 
-            return Ok(user);
+            return userModel;
+        }
+
+        // PUT: api/User/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutUserModel(int id, UserModel userModel)
+        {
+            if (id != userModel.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(userModel).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UserModelExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/User
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<UserModel>> PostUserModel(UserModel userModel)
+        {
+          if (_context.Users == null)
+          {
+              return Problem("Entity set 'AppDbContext.Users'  is null.");
+          }
+            _context.Users.Add(userModel);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetUserModel", new { id = userModel.Id }, userModel);
+        }
+
+        // DELETE: api/User/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUserModel(int id)
+        {
+            if (_context.Users == null)
+            {
+                return NotFound();
+            }
+            var userModel = await _context.Users.FindAsync(id);
+            if (userModel == null)
+            {
+                return NotFound();
+            }
+
+            _context.Users.Remove(userModel);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool UserModelExists(int id)
+        {
+            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }
